@@ -16,7 +16,7 @@ setmetatable(GameState, meta)
 
 function GameState:init()
     self.name = 'game'
-    self.width = 8
+    self.width = 6
     self.height = 6
     self.offsetX = 0
     self.offsetY = 0
@@ -29,6 +29,7 @@ function GameState:init()
     self.board.cursor:setPos(3, 3)
 
     self.blocks = {}
+    self.plaindromeSets = {}
 
     self:fillBoard()
     self.adding = false
@@ -110,18 +111,23 @@ function GameState:checkForPalindrome(cellList)
     -- make this an animation instead of instant
     if result then
         print("eh palindrome!")
-        for _, cell in pairs(cellList) do
-            if cell:hasOccupant() then
-                cell.occupant.dead = true
+        local palindromeSet = {}
+        Timer.after(0.1, function ()
+            for _, cell in pairs(cellList) do
+                if cell:hasOccupant() then
+                    cell.occupant.dead = true
+                    table.insert(palindromeSet, cell.occupant.id)
+                end
+                cell:setOccupant(nil)
             end
-            cell:setOccupant(nil)
-        end
-        for i = #self.blocks, 1, -1 do
-            if self.blocks[i].dead then
-                table.remove(self.blocks, i)
+            
+            table.insert(self.plaindromeSets, palindromeSet)
+
+            for i = #self.blocks, 1, -1 do
+                if self.blocks[i].dead then
+                    table.remove(self.blocks, i)
+                end
             end
-        end
-        Timer.after(0.1, function()
             self.path:clear()
         end)
 
@@ -129,7 +135,7 @@ function GameState:checkForPalindrome(cellList)
             self:dropToEmptys(cellList);
         end)
 
-        Timer.after(0.4, function()
+        Timer.after(0.3, function()
             --check the column again and add blocks for the empty cells that remain
             for y = 1, self.height do
                 for x = 1, self.width do
@@ -140,7 +146,7 @@ function GameState:checkForPalindrome(cellList)
             end
         end)
 
-        Timer.after(0.7, function()
+        Timer.after(0.5, function()
             self.animating = false
             self.path:add(self.board:cellAtCursor())
             self.adding = true
@@ -172,26 +178,52 @@ end
 -- end
 
 function GameState:draw()
-    setColor(1)
-    love.graphics.print(self.board.cursor.x..','..self.board.cursor.y, 60, 4)
-    --love.graphics.rectangle('line', 34, 14, 128 - 45, 128 - 29)
     self.board:draw()
-    self.board.cursor:draw()
-    self:drawCurrentSet()
+    
+    if not self.animating then
+        self.board.cursor:draw()
+    end
     
     for _, block in pairs(self.blocks) do
         block:draw()
     end
 
+    setColor(7)
+    -- border
+    love.graphics.rectangle(
+        'line',
+        self.offsetX + self.cellSize - 1,
+        self.offsetY + self.cellSize - 1,
+        self.width * self.cellSize + 2,
+        self.height * self.cellSize + 2
+    )
+    
     --self.board:drawOccupantInfo()
-
+    
+    self:drawCurrentSet()
+    self:drawCapturedSets()
     self.path:draw()
+end
+
+function GameState:drawCapturedSets()
+    local cSize = 1
+    local startX = (self.width * 16) + self.offsetX + self.cellSize + 4
+    local startY = self.cellSize - 1
+    for i, plaindrome in pairs(self.plaindromeSets) do
+        local x = startX
+        local y = startY + (i * cSize)
+        for j, id in pairs(plaindrome) do
+            setColor(id)
+            love.graphics.rectangle("fill", x + j, y, cSize, cSize)
+        end
+    end
+
 end
 
 function GameState:drawCurrentSet()
     local previewSize = 8
     local startX = 8
-    local startY = ((self.height + 1) * 16) + 4
+    local startY = ((self.height + 1) * self.cellSize) + 4
     local padding = 1
     local wraplen = 16
     for i, cell in pairs(self.path.cells) do
@@ -235,7 +267,6 @@ function GameState:move(x, y)
 end
 
 function GameState:confirm()
-    print('confirm')
     self.path:clear()
     if self.adding then
         self.adding = false
