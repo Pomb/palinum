@@ -1,7 +1,8 @@
-- [ ] extract board setting blocks into a module
-    - [ ] use new extracted to show palindrom selection in help
+- [x] extract board setting blocks into a module
+    - [x] use new extracted to show palindrom selection in help
 
-- [ ] tutorial
+- [/] tutorial
+    - [x] help shows how to make a palindrome
     - [ ] simple linear level showing palindrome creation with 2 colors
     - [ ] simple 3x3 board with 2 colors, create X sets
     - [ ] simple 4x4 board with 2 colors
