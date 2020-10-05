@@ -14,9 +14,9 @@ function Board:constructor(width, height, cellsize, ox, oy, padding)
     self.grid = {}
     self.cellSize = cellsize or 16
     self.cellPadding = padding or 0
-    self.cursor = Cursor(self.cellSize)
     self.xOffset = ox or 0
     self.yOffset = oy or 0
+    self.cursor = Cursor(self.cellSize, self.xOffset, self.yOffset)
 end
 
 function Board:new()
@@ -28,7 +28,7 @@ function Board:new()
     end
 end
 
-function Board:getActorAtCursor()
+function Board:getOccupantAtCursor()
     if currentCell then
         return currentCell:getOccupant()
     else
@@ -36,14 +36,10 @@ function Board:getActorAtCursor()
     end
 end
 
-function Board:setOccupant(actor, x, y)
+function Board:setOccupant(occupant, x, y)
     local cell = self.grid[y][x]
     assert(cell:getOccupant() == nil, "There is already an occupant here")
-    cell:setOccupant(actor)
-end
-
-function Board:highlightRangeAt(x, y, range)
-    local cell = self.grid[y][x]
+    cell:setOccupant(occupant)
 end
 
 function Board:draw()
@@ -51,6 +47,15 @@ function Board:draw()
         for x = 1, self.width do
             local cell = self.grid[y][x]
             cell:draw()
+        end
+    end
+end
+
+function Board:clear()
+    for y = 1, self.height do
+        for x = 1, self.width do
+            local cell = self.grid[y][x]
+            cell:setOccupant(nil)
         end
     end
 end
