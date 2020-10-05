@@ -1,5 +1,5 @@
-GameBoard = require 'game_board'
-Block = require 'block'
+GameBoard = require 'src.game_board'
+Block = require 'src.block'
 Timer = require 'libraries.knife.knife.timer'
 
 HelpState = {}
@@ -19,7 +19,7 @@ function HelpState:init()
     self.dohint = false
     self.step = 1
     self.hintRoutine = nil
-    self.gameboard = GameBoard(3, 2, self.ox, self.oy, 16, function()
+    self.gameboard = GameBoard(3, 2, self.ox, self.oy, 16, 10, function()
             self.step = self.step + 1
             self.dohint = false
             self.gameboard.hintPath:clear()

@@ -1,7 +1,7 @@
-GameBoard = require 'game_board'
 Timer = require 'libraries.knife.knife.timer'
-Block = require 'block'
-require 'utilities.tables'
+GameBoard = require 'src.game_board'
+Block = require 'src.block'
+require 'src.utilities.tables'
 
 GameState = {}
 
@@ -20,11 +20,24 @@ function GameState:init()
     self.offsetX = 0
     self.offsetY = 0
     self.cellSize = 16
-    self.gameboard = GameBoard(self.width, self.height, self.offsetX, self.yOffset, self.cellSize)
+    self.gameboard = nil
+    self.level = 0
+
+    self:setUpLevel(1)
+end
+
+function GameState:setUpLevel()
+    if self.gameboard ~= nil then
+        self.gameboard:clear()
+    end
+    self.gameboard = GameBoard(self.width, self.height, self.offsetX, self.yOffset, self.cellSize, 10 + (self.level * 10), nil,
+        function()
+            self.level = self.level + 1
+            self:setUpLevel()
+        end)
     self.gameboard:setCursorPos(math.ceil(self.width / 2), math.ceil(self.height / 2), self.offsetX, self.offsetY)
     self.gameboard:fillBoard()
 end
-
 
 
 function GameState:update(dt)
@@ -41,6 +54,8 @@ function GameState:draw()
     self.gameboard:draw()
     self.gameboard:drawCurrentSet()
     self.gameboard:drawCapturedSets()
+
+    dropPrint(self.level, 148, 1)
 end
 
 function GameState:move(x, y)

@@ -1,5 +1,3 @@
-require("utf8")
-
 MenuState = {}
 
 meta = {

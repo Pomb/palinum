@@ -1,6 +1,7 @@
-require('utilities.tables')
-require('utilities.shapes')
-require('utilities.numbers')
+Base = require 'libraries.knife.knife.base'
+require 'src.utilities.tables'
+require 'src.utilities.shapes'
+require 'src.utilities.numbers'
 
 Path = Base:extend()
 

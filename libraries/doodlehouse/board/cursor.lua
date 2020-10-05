@@ -1,4 +1,4 @@
-require('utilities.numbers')
+require('src.utilities.numbers')
 Cursor = Base:extend()
 
 function Cursor:constructor(size, ox, oy)

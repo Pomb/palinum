@@ -1,16 +1,21 @@
+Path = require 'src.path'
 Base = require 'libraries.knife.knife.base'
-Path = require 'path'
 Timer = require 'libraries.knife.knife.timer'
 Board = require 'libraries.doodlehouse.board.board'
 
 GameBoard = Base:extend()
 
-function GameBoard:constructor(w, h, ox, oy, cellSize, onPalindrome)
+function GameBoard:constructor(w, h, ox, oy, cellSize, levelCount, onPalindrome, onComplete, ids)
     self.width = w or 5
     self.height = h or 5
     self.cellSize = cellSize or 16
     self.offsetX = ox or 0
     self.offsetY = oy or 0
+    self.levelCount = levelCount or 10
+    self.count = 0
+
+    self.ids = ids or {8, 12, 11, 10}
+    --local ids = ids or {8, 12, 11, 13, 10, 5}
 
     self.path = Path(self.cellSize)
     self.hintPath = Path(self.cellSize, 0.8)
@@ -25,7 +30,8 @@ function GameBoard:constructor(w, h, ox, oy, cellSize, onPalindrome)
     self.board = Board(self.width, self.height, self.cellSize, self.offsetX, self.offsetY)
     self.board:new()
 
-    self.onPalindrome = onPalindrome
+    self.onPalindrome = onPalindrome or doNothing
+    self.onComplete = onComplete or doNothing
 end
 
 function GameBoard:fillBoard()
@@ -39,10 +45,6 @@ end
 function GameBoard:setCursorPos(x, y)
     local cell = self.board:cellAtCoord(x,y)
     self.board.cursor:setPos(cell.x, cell.y)
-end
-
-function GameBoard:setHintPath(cellList)
-
 end
 
 function GameBoard:getDropCell(cell)
@@ -81,7 +83,6 @@ function GameBoard:checkForPalindrome(cellList)
         end
     end
 
-    -- make this an animation instead of instant
     if result then
         local palindromeSet = {}
         Timer.after(0.1, function ()
@@ -92,6 +93,8 @@ function GameBoard:checkForPalindrome(cellList)
                     cell:setOccupant(nil)
                 end
             end
+
+            self.count = self.count + #palindromeSet
             
             table.insert(self.plaindromeSets, palindromeSet)
 
@@ -113,7 +116,6 @@ function GameBoard:checkForPalindrome(cellList)
         end)
 
         Timer.after(0.3, function()
-            --check the column again and add blocks for the empty cells that remain
             for y = 1, self.height do
                 for x = 1, self.width do
                     if self.board:cellAtCoord(x, y):isEmpty() then
@@ -132,20 +134,22 @@ function GameBoard:checkForPalindrome(cellList)
     else
         self.animating = false
     end
+
+    if self.count >= self.levelCount then
+        self.onComplete()
+    end
 end
 
 function GameBoard:setBlock(x, y, block)
     local targetCell = self.board.grid[y][x]
     block.position.x = targetCell.wx
-    block.position.y = targetCell.wy - (x * 10) - (y * 10) + 10
+    block.position.y = targetCell.wy - (x * 10) - ((y + 16) * self.height)
     self.board.grid[y][x]:setOccupant(block)
     table.insert(self.blocks, block)
 end
 
 function GameBoard:addBlock(x, y)
-    --local ids = {8, 12, 11, 13, 10, 5}
-    local ids = {8, 12, 11}
-    local block = Block(randomKey(ids), Timer)
+    local block = Block(randomKey(self.ids), Timer)
     local targetCell = self.board.grid[y][x]
     block.position.x = targetCell.wx
     block.position.y = targetCell.wy - (x * 10) - (y * 10) + 10
@@ -183,8 +187,8 @@ function GameBoard:draw()
         self.height * self.cellSize
     )
     --self.board:drawOccupantInfo()
-     -- cursor
-     if not self.animating then
+    -- cursor
+    if not self.animating then
         self.board.cursor:draw()
     end
 
@@ -274,17 +278,6 @@ function GameBoard:add()
     self.adding = true
     self.path:add(self.board:cellAtCursor());
     self:checkForPalindrome(self.path.cells)
-end
-
-function GameBoard:addBlock(x, y)
-    --local ids = {8, 12, 11, 13, 10, 5}
-    local ids = {8, 12, 11}
-    local block = Block(randomKey(ids), Timer)
-    local targetCell = self.board.grid[y][x]
-    block.position.x = targetCell.wx
-    block.position.y = targetCell.wy - (x * 20) - (y * 20) + 10
-    self.board.grid[y][x]:setOccupant(block)
-    table.insert(self.blocks, block)
 end
 
 function GameBoard:update(dt)
