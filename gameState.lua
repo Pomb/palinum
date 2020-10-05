@@ -180,38 +180,42 @@ end
 function GameState:draw()
     self.board:draw()
     
+    -- clip block drawing to the board
+    love.graphics.setScissor(
+        (self.offsetX + self.cellSize) * scale,
+        (self.offsetY + self.cellSize) * scale,
+        (self.width * self.cellSize) * scale,
+        (self.height * self.cellSize) * scale
+    )
+    for _, block in pairs(self.blocks) do
+        block:draw()
+    end
+    love.graphics.setScissor()
+
+    
+    if self.animating then
+        setColor(7)
+    else 
+        setColor(1)
+    end
+    -- border
+    love.graphics.rectangle(
+        'line',
+        self.offsetX + self.cellSize,
+        self.offsetY + self.cellSize,
+        self.width * self.cellSize,
+        self.height * self.cellSize
+    )
+
+    -- cursor
     if not self.animating then
         self.board.cursor:draw()
     end
     
-    love.graphics.setScissor(
-        (self.offsetX + self.cellSize - 1) * scale,
-        (self.offsetY + self.cellSize - 1) * scale,
-        (self.width * self.cellSize + 2) * scale,
-        (self.height * self.cellSize + 2) * scale
-    )
-
-    for _, block in pairs(self.blocks) do
-        block:draw()
-    end
-
-
-
-    setColor(7)
-    -- border
-    love.graphics.rectangle(
-        'line',
-        self.offsetX + self.cellSize - 2,
-        self.offsetY + self.cellSize - 2,
-        self.width * self.cellSize + 4,
-        self.height * self.cellSize + 4
-    )
-    
-    --self.board:drawOccupantInfo()
-    
     self:drawCurrentSet()
     self:drawCapturedSets()
     self.path:draw()
+    --self.board:drawOccupantInfo()
 end
 
 function GameState:drawCapturedSets()
@@ -231,10 +235,10 @@ end
 
 function GameState:drawCurrentSet()
     local previewSize = 8
-    local startX = 8
-    local startY = ((self.height + 1) * self.cellSize) + 4
+    local startX = 16
+    local startY = ((self.height + 1) * self.cellSize) + 2
     local padding = 1
-    local wraplen = 16
+    local wraplen = 15
     for i, cell in pairs(self.path.cells) do
         local wy =  (math.floor((i - 1) / wraplen))
         local wx = (math.floor((i - 1) % wraplen));
