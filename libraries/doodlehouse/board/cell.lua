@@ -18,13 +18,13 @@ function Cell:draw()
     setColor(1)
     love.graphics.rectangle('line', self.wx, self.wy, self.size - self.padding, self.size - self.padding)
 
-    if self.highlighted then
-        setColor(7)
-        --love.graphics.rectangle('line', dx + 2, dy + 2, self.size - self.padding - 4, self.size - self.padding - 4)
-    end
+    -- if self.highlighted then
+    --     setColor(7)
+    --     --love.graphics.rectangle('line', dx + 2, dy + 2, self.size - self.padding - 4, self.size - self.padding - 4)
+    -- end
 
-    setFont(Fonts.caption)
-    love.graphics.print(''..self.x..':'..self.y, self.wx + 4, self.wy + 4)
+    -- setFont(Fonts.caption)
+    -- love.graphics.print(''..self.x..':'..self.y, self.wx + 4, self.wy + 4)
 end
 
 function Cell:drawOccupantInfo()

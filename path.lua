@@ -4,10 +4,14 @@ require('utilities.numbers')
 
 Path = Base:extend()
 
-function Path:constructor(cellSize)
+function Path:constructor(cellSize, alpha)
     self.cellSize = cellSize or 16
     self.offsetX = self.cellSize / 2
     self.offsetY = self.cellSize / 2
+    self.alpha = alpha or 1
+
+    self.color = 7
+    self.dropColor = 0
 
     -- list of cells
     self.cells = {}
@@ -83,20 +87,21 @@ function Path:updateLine()
 end
 
 function Path:draw()
-    love.graphics.setLineWidth(3)
-    if #self.line > 3 then
+    love.graphics.setLineWidth(4)
+    if #self.line > 2 then
         local prevwp = self.cells[#self.cells - 1]
         local lastwp = self.cells[#self.cells]
         local ax = lastwp.wx + self.offsetX
         local ay = lastwp.wy + self.offsetY
         local cardDir = cardinalDirection(prevwp.x, prevwp.y, lastwp.x, lastwp.y)
         local verts = triangleVerts(cardDir, ax, ay, 4, 3)
+        if self.alpha == 1 then
+            setColor(self.dropColor) -- drop shadow
+            love.graphics.line(self.line)
+            love.graphics.polygon("fill", verts)
+        end
         
-        setColor(0) -- drop shadow
-        love.graphics.line(self.line)
-        love.graphics.polygon("fill", verts)
-        
-        setColor(7) -- normal
+        setColor(self.color, self.alpha) -- normal
         love.graphics.push()
         love.graphics.translate(0, -1)
         love.graphics.line(self.line)

@@ -1,13 +1,16 @@
 require('utilities.numbers')
 Cursor = Base:extend()
 
-function Cursor:constructor(size)
+function Cursor:constructor(size, ox, oy)
     self.x = 1
     self.y = 1
+    self.offsetX = ox or 0
+    self.offsetY = oy or 0
     self.size = size or 16
     self.cornerSize = 4
     self.color = 7
-    self.weight = 1.5
+    self.weight = 1
+    self.full = false
 end
 
 function Cursor:draw(color)
@@ -21,8 +24,9 @@ function Cursor:draw(color)
 
     local s = self.size
     local cs = self.cornerSize
-    local x = self.x * s
-    local y = self.y * s
+    if self.full then cs = self.size end
+    local x = (self.x * s) + self.offsetX
+    local y = (self.y * s) + self.offsetY
     local xs = x + s
     local ys = y + s
     local xc = x + cs

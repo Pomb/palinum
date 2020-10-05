@@ -5,21 +5,25 @@ GameState = require 'gameState'
 HelpState = require 'helpState'
 
 function love.load()
-    love.graphics.setDefaultFilter("nearest", "nearest")
+    love.graphics.setDefaultFilter("nearest", "nearest", 0)
     love.keyboard.setKeyRepeat(true)
 
     setFont(Fonts.caption)
 
     scale = 4
+    g_offsetX = 0
+    g_offsetY = 0
+
     stateLookup = {
         ['menu'] = MenuState(),
         ['game'] = GameState(),
-        ['help'] = HelpState()
+        ['help'] = HelpState(),
     }
     state = nil
 
     changeState('menu')
 end
+
 
 function changeState(targetState)
     if stateLookup[targetState] then
@@ -32,6 +36,7 @@ end
 
 function love.draw()
     love.graphics.scale(scale,scale)
+    love.graphics.translate(g_offsetX, g_offsetY)
     love.graphics.setLineWidth(1)
     state:draw()
     setColor(1)
@@ -63,5 +68,18 @@ end
 -- end
 
 function love.keypressed(key, scancode, isrepeat)
+    -- if key == 'f' then
+    --     love.window.setFullscreen(not love.window.getFullscreen(), "desktop")
+
+    --     if love.window.getFullscreen() then
+    --         w, h = love.graphics.getDimensions()
+    --         g_offsetX = (w / 12)
+    --         g_offsetY = (h / 16)
+    --     else
+    --         g_offsetX = 0
+    --         g_offsetY = 0
+    --     end
+    -- end
+
     state:keypressed(key, scancode, isrepeat)
 end
