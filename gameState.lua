@@ -274,6 +274,8 @@ function GameState:confirm()
         self.adding = true
         self.path:add(self.board:cellAtCursor())
     end
+
+    self.board.cursor.full = self.adding
 end
 
 function GameState:keypressed(key, scancode, isrepeat)

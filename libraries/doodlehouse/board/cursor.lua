@@ -7,7 +7,8 @@ function Cursor:constructor(size)
     self.size = size or 16
     self.cornerSize = 4
     self.color = 7
-    self.weight = 1.5
+    self.weight = 1
+    self.full = false
 end
 
 function Cursor:draw(color)
@@ -21,6 +22,7 @@ function Cursor:draw(color)
 
     local s = self.size
     local cs = self.cornerSize
+    if self.full then cs = self.size end
     local x = self.x * s
     local y = self.y * s
     local xs = x + s
