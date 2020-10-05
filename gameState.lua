@@ -163,7 +163,7 @@ function GameState:addBlock(x, y)
     local block = Block(randomKey(ids), Timer)
     local targetCell = self.board.grid[y][x]
     block.position.x = targetCell.wx
-    block.position.y = targetCell.wy - 10 - (x * 10) - (y * 20)
+    block.position.y = targetCell.wy - (x * 10) - (y * 10) + 10
     self.board.grid[y][x]:setOccupant(block)
     table.insert(self.blocks, block)
 end
@@ -184,18 +184,27 @@ function GameState:draw()
         self.board.cursor:draw()
     end
     
+    love.graphics.setScissor(
+        (self.offsetX + self.cellSize - 1) * scale,
+        (self.offsetY + self.cellSize - 1) * scale,
+        (self.width * self.cellSize + 2) * scale,
+        (self.height * self.cellSize + 2) * scale
+    )
+
     for _, block in pairs(self.blocks) do
         block:draw()
     end
+
+
 
     setColor(7)
     -- border
     love.graphics.rectangle(
         'line',
-        self.offsetX + self.cellSize - 1,
-        self.offsetY + self.cellSize - 1,
-        self.width * self.cellSize + 2,
-        self.height * self.cellSize + 2
+        self.offsetX + self.cellSize - 2,
+        self.offsetY + self.cellSize - 2,
+        self.width * self.cellSize + 4,
+        self.height * self.cellSize + 4
     )
     
     --self.board:drawOccupantInfo()

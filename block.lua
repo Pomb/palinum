@@ -8,7 +8,7 @@ function Block:constructor(id, timer)
     self.timer = timer
     self.position = {x = 0, y = 0}
     self.moveSpeed = 0.4
-    self.padding = 1
+    self.padding = 0.5
     self.dead = false
     self.cell = nil
 end

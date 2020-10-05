@@ -17,8 +17,8 @@ end
 
 function HelpState:draw()
     setColor(7)
-    love.graphics.printf('x', -16, 128, game_width/4, 'center');
-    love.graphics.printf('back', 0, 128, game_width/4, 'center')
+    love.graphics.printf('x', -16, 128, game_width/scale, 'center');
+    love.graphics.printf('back', 0, 128, game_width/scale, 'center')
 end
 
 function HelpState:mousemoved(x, y, dx, dy)
