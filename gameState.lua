@@ -63,7 +63,7 @@ function GameState:confirm()
 end
 
 function GameState:keypressed(key, scancode, isrepeat)
-    if key == 'q' then
+    if key == 'z' then
         changeState('menu')
     end
 

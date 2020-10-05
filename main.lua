@@ -1,5 +1,6 @@
 require 'libraries.doodlehouse.dscolor.doodlecolor'
 require 'fonts.fonts'
+Timer = require 'libraries.knife.knife.timer'
 MenuState = require 'menuState'
 GameState = require 'gameState'
 HelpState = require 'helpState'
@@ -13,6 +14,7 @@ function love.load()
     scale = 4
     g_offsetX = 0
     g_offsetY = 0
+    menuCol = 1
 
     stateLookup = {
         ['menu'] = MenuState(),
@@ -26,6 +28,11 @@ end
 
 
 function changeState(targetState)
+    menuCol = 7
+    Timer.after(0.5, function()
+        menuCol = 1;
+    end)
+
     if stateLookup[targetState] then
         state = stateLookup[targetState];
         state:init()
@@ -39,9 +46,10 @@ function love.draw()
     love.graphics.translate(g_offsetX, g_offsetY)
     love.graphics.setLineWidth(1)
     state:draw()
+
     setColor(1)
     love.graphics.rectangle('line', 2,2,(game_width/scale)-4,(game_height/scale)-4)
-    dropPrint(state.name, 6, 0, 1)
+    dropPrint(state.name, 6, 0, menuCol)
 end
 
 function dropPrint(text, x, y, c, dc)
@@ -57,6 +65,7 @@ end
 
 function love.update(dt)
     state:update(dt)
+    Timer.update(dt)
 end
 
 -- function love.mousemoved(x, y, dx, dy)

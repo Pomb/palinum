@@ -191,10 +191,10 @@ function GameBoard:draw()
     self:drawPath()
 end
 
-function GameBoard:drawCapturedSets()
+function GameBoard:drawCapturedSets(offsetX, offsetY)
     local cSize = 1
-    local startX = (self.width * 16) + self.offsetX + self.cellSize + 4
-    local startY = self.cellSize - 1
+    local startX = offsetX or (self.width * 16) + self.offsetX + self.cellSize + 4
+    local startY = offsetY or self.cellSize - 1
     for i, plaindrome in pairs(self.plaindromeSets) do
         local x = startX
         local y = startY + (i * cSize)
@@ -271,9 +271,9 @@ function GameBoard:clearBoard()
 end
 
 function GameBoard:add()
+    self.adding = true
     self.path:add(self.board:cellAtCursor());
     self:checkForPalindrome(self.path.cells)
-    self.adding = true
 end
 
 function GameBoard:addBlock(x, y)
@@ -282,7 +282,7 @@ function GameBoard:addBlock(x, y)
     local block = Block(randomKey(ids), Timer)
     local targetCell = self.board.grid[y][x]
     block.position.x = targetCell.wx
-    block.position.y = targetCell.wy - (x * 10) - (y * 10) + 10
+    block.position.y = targetCell.wy - (x * 20) - (y * 20) + 10
     self.board.grid[y][x]:setOccupant(block)
     table.insert(self.blocks, block)
 end
