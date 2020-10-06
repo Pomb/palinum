@@ -13,7 +13,6 @@ function GameBoard:constructor(w, h, ox, oy, cellSize, levelCount, onPalindrome,
     self.offsetY = oy or 0
     self.levelCount = levelCount or 10
     self.count = 0
-
     self.ids = ids or {8, 12, 11, 10}
     --local ids = ids or {8, 12, 11, 13, 10, 5}
 
@@ -35,16 +34,43 @@ function GameBoard:constructor(w, h, ox, oy, cellSize, levelCount, onPalindrome,
 end
 
 function GameBoard:fillBoard()
+    self.animating = true
     for y = 1, self.height do
         for x = 1, self.width do
             self:addBlock(x,y)
         end
+    end
+    Timer.after(0.5, function()
+        self.animating = false
+    end)
+end
+
+function GameBoard:toggleAdding()
+    self.adding = not self.adding
+    self.board.cursor.full = self.adding
+    if self.adding then
+        self:add()
+    end
+end
+
+function GameBoard:setAdding(value)
+    self.adding = value
+    self.board.cursor.full = self.adding
+    if self.adding then
+        self:add()
     end
 end
 
 function GameBoard:setCursorPos(x, y)
     local cell = self.board:cellAtCoord(x,y)
     self.board.cursor:setPos(cell.x, cell.y)
+end
+
+function GameBoard:moveCursor(dx, dy)
+    self.board:moveCursor(dx, dy)
+    if self.adding then
+        self:add()
+    end
 end
 
 function GameBoard:getDropCell(cell)
@@ -126,7 +152,6 @@ function GameBoard:checkForPalindrome(cellList)
         end)
 
         Timer.after(0.5, function()
-            self.animating = false
             self.adding = true
             self:add()
         end)
@@ -135,6 +160,7 @@ function GameBoard:checkForPalindrome(cellList)
         self.animating = false
     end
     Timer.after(1.5, function()
+        self.animating = false
         if hasPalindrome and self.count >= self.levelCount then
             self.onComplete()
         end

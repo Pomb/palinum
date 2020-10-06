@@ -22,49 +22,85 @@ function GameState:init()
     self.offsetY = 0
     self.cellSize = 16
     self.gameboard = nil
-    self.level = 0
+    self.level = 1
 
     self.blockInput = false
-
     self.boxes = {}
 
-    self:setUpLevel(1)
+    self.levelIdSets = {
+        {8, 12},
+        {8, 12, 11},
+        {8, 12, 11, 10},
+        {8, 12, 11, 10},
+        {8, 12, 11, 10, 13},
+    }
+
+    self:setUpLevel()
 end
 
 function GameState:setUpLevel()
+    self.blockInput = true
+    local wasAdding = false
+    local xPos = math.ceil(self.width / 2)
+    local yPos = math.ceil(self.height / 2)
     if self.gameboard ~= nil then
-        self.gameboard:clear()
+        wasAdding = self.gameboard.adding
+        xPos = self.gameboard.board.cursor.x
+        yPos = self.gameboard.board.cursor.y
+        self.gameboard:clearBoard()
     end
-    self.gameboard = GameBoard(self.width, self.height, self.offsetX, self.yOffset, self.cellSize, 2 + (self.level * 10), nil,
-        function()
-            self:levelUp()
-        end)
-    self.gameboard:setCursorPos(math.ceil(self.width / 2), math.ceil(self.height / 2), self.offsetX, self.offsetY)
+    self.gameboard = GameBoard(self.width, self.height, self.offsetX, self.yOffset, self.cellSize, self:nextLevelCount(), nil,
+            function()
+                self:levelUp()
+            end,
+            self:setForLevel()
+        )
+    self.gameboard:setCursorPos(xPos, yPos, self.offsetX, self.offsetY)
     self.gameboard:fillBoard()
+    self.gameboard:setAdding(wasAdding)
 
     Timer.after(1, function()
         self.blockInput = false
     end)
 end
 
+function GameState:setForLevel()
+    local index = clamp(self.level, 1, #self.levelIdSets)
+    return self.levelIdSets[index]
+end
+
+function GameState:nextLevelCount()
+    return 10 + math.ceil((self.level * 100) * 0.1);
+end
+
 function GameState:levelUp()
     self.blockInput = true
     self.level = self.level + 1
 
-    local box = Box(0, game_height, game_width, 2, 1)
+    local box = Box(0, game_height, game_width, 30, 7, 'level '..self.level)
     table.insert(self.boxes, box)
-    Timer.tween(2, {
-        [box.position] = {y = -200},
-        [box.size] = {height = 200}
-    }):ease(Curves.inOutQuad)
+    Timer.tween(1, {
+        [box.position] = {y = 50},
+        [box.size] = {height = 20}
+    }):ease(Curves.outQuart)
 
-    Timer.after(1, function()
+    Timer.after(2, function()
+        Timer.tween(1, {
+            [box.position] = {y = -10},
+            [box.size] = {height = 0}
+        }):ease(Curves.inQuart)
+    end)
+
+    Timer.after(2, function() 
         self.gameboard:clearBoard()
     end)
 
-    Timer.after(2,
+    Timer.after(4, function() 
+        table.remove(self.boxes, 1)
+    end)
+
+    Timer.after(3.5,
         function()
-            table.remove(self.boxes, 1)
             self:setUpLevel()
         end
     )
@@ -85,30 +121,22 @@ function GameState:draw()
     self.gameboard:draw()
     self.gameboard:drawCurrentSet()
     self.gameboard:drawCapturedSets()
-    
-    for _, effect in pairs(self.boxes) do
-        effect:draw()
-    end
 
     dropPrint(self.level, 148, 1)
+    dropPrint(self.gameboard.count..'/'..self.gameboard.levelCount, 55, 1)
+
+    for _, box in pairs(self.boxes) do
+        box:draw()
+    end
 end
 
 function GameState:move(x, y)
-    self.gameboard.board:moveCursor(x, y, false)
-    if self.gameboard.adding then
-        self.gameboard:add()
-    end
-    self.gameboard.board.cursor.full = self.adding
+    self.gameboard:moveCursor(x, y)
 end
 
 function GameState:confirm()
     self.gameboard.path:clear()
-    if self.gameboard.adding then
-        self.gameboard.adding = false
-    else
-        self.gameboard.adding = true
-        self.gameboard:add()
-    end
+    self.gameboard:toggleAdding()
 end
 
 function GameState:keypressed(key, scancode, isrepeat)

@@ -79,18 +79,9 @@ end
 -- end
 
 function love.keypressed(key, scancode, isrepeat)
-    -- if key == 'f' then
-    --     love.window.setFullscreen(not love.window.getFullscreen(), "desktop")
-
-    --     if love.window.getFullscreen() then
-    --         w, h = love.graphics.getDimensions()
-    --         g_offsetX = (w / 12)
-    --         g_offsetY = (h / 16)
-    --     else
-    --         g_offsetX = 0
-    --         g_offsetY = 0
-    --     end
-    -- end
+    if key == 'f' then
+        love.window.setFullscreen(not love.window.getFullscreen())
+    end
 
     state:keypressed(key, scancode, isrepeat)
 end
