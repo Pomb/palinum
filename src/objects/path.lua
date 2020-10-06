@@ -110,6 +110,7 @@ function Path:draw()
         love.graphics.pop()
     end
     love.graphics.setLineWidth(1)
+    love.graphics.setColor(1,1,1,1)
 end
 
 return Path;

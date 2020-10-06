@@ -17,7 +17,7 @@ function GameBoard:constructor(w, h, ox, oy, cellSize, levelCount, onPalindrome,
     --local ids = ids or {8, 12, 11, 13, 10, 5}
 
     self.path = Path(self.cellSize)
-    self.hintPath = Path(self.cellSize, 0.8)
+    self.hintPath = Path(self.cellSize, 0.5)
     self.palinLength = 3
 
     self.blocks = {}
@@ -189,10 +189,10 @@ function GameBoard:draw()
     
     --clip block drawing to the board
     love.graphics.setScissor(
-        (self.offsetX + self.cellSize) * scale,
-        (self.offsetY + self.cellSize) * scale,
-        (self.width * self.cellSize) * scale,
-        (self.height * self.cellSize) * scale
+        (self.offsetX + self.cellSize),
+        (self.offsetY + self.cellSize),
+        (self.width * self.cellSize),
+        (self.height * self.cellSize)
     )
     for _, block in pairs(self.blocks) do
         block:draw()
@@ -224,8 +224,8 @@ end
 
 function GameBoard:drawCapturedSets(offsetX, offsetY)
     local cSize = 1
-    local startX = offsetX or (self.width * 16) + self.offsetX + self.cellSize + 4
-    local startY = offsetY or self.cellSize - 1
+    local startX = offsetX or (self.width * self.cellSize) + self.offsetX + self.cellSize + 4
+    local startY = offsetY or self.cellSize - 1 + self.offsetY
     for i, plaindrome in pairs(self.plaindromeSets) do
         local x = startX
         local y = startY + (i * cSize)
@@ -244,8 +244,8 @@ end
 
 function GameBoard:drawCurrentSet(ox, oy)
     local previewSize = 8
-    local startX = ox or 16
-    local startY = oy or ((self.height + 1) * self.cellSize) + 2
+    local startX = ox or self.offsetX + self.cellSize
+    local startY = oy or self.offsetY + ((self.height + 1) * self.cellSize) + 2
     local padding = 1
     local wraplen = 15
     for i, cell in pairs(self.path.cells) do
