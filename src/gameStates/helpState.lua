@@ -1,5 +1,5 @@
 GameBoard = require 'src.game_board'
-Block = require 'src.block'
+Block = require 'src.objects.block'
 Timer = require 'libraries.knife.knife.timer'
 
 HelpState = {}

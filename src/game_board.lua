@@ -1,4 +1,4 @@
-Path = require 'src.path'
+Path = require 'src.objects.path'
 Base = require 'libraries.knife.knife.base'
 Timer = require 'libraries.knife.knife.timer'
 Board = require 'libraries.doodlehouse.board.board'
@@ -75,15 +75,15 @@ function GameBoard:checkForPalindrome(cellList)
     local revList = clone(cellList)
     revList = reverse(revList)
 
-    local result = true
+    local hasPalindrome = true
     for i = 1, length do
         if cellList[i]:id() ~= revList[i]:id() then
-            result = false
+            hasPalindrome = false
             break
         end
     end
 
-    if result then
+    if hasPalindrome then
         local palindromeSet = {}
         Timer.after(0.1, function ()
             for _, cell in pairs(cellList) do
@@ -134,10 +134,11 @@ function GameBoard:checkForPalindrome(cellList)
     else
         self.animating = false
     end
-
-    if self.count >= self.levelCount then
-        self.onComplete()
-    end
+    Timer.after(1.5, function()
+        if hasPalindrome and self.count >= self.levelCount then
+            self.onComplete()
+        end
+    end)
 end
 
 function GameBoard:setBlock(x, y, block)
