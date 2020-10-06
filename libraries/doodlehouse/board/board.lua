@@ -9,8 +9,8 @@ local previousCell
 local currentCell
 
 function Board:constructor(width, height, cellsize, ox, oy, padding)
-    self.width = width
-    self.height = height
+    self.maxWidth = width
+    self.maxHeight = height
     self.grid = {}
     self.cellSize = cellsize or 16
     self.cellPadding = padding or 0
@@ -20,9 +20,9 @@ function Board:constructor(width, height, cellsize, ox, oy, padding)
 end
 
 function Board:new()
-    for y = 1, self.height do
+    for y = 1, self.maxHeight do
         self.grid[y] = {}
-        for x = 1, self.width do
+        for x = 1, self.maxWidth do
             self.grid[y][x] = Cell(x,y, self.cellSize, self.cellPadding, self.xOffset, self.yOffset)
         end
     end
@@ -43,8 +43,8 @@ function Board:setOccupant(occupant, x, y)
 end
 
 function Board:draw()
-    for y = 1, self.height do
-        for x = 1, self.width do
+    for y = 1, self.maxHeight do
+        for x = 1, self.maxWidth do
             local cell = self.grid[y][x]
             cell:draw()
         end
@@ -52,8 +52,8 @@ function Board:draw()
 end
 
 function Board:clear()
-    for y = 1, self.height do
-        for x = 1, self.width do
+    for y = 1, self.maxHeight do
+        for x = 1, self.maxWidth do
             local cell = self.grid[y][x]
             cell:setOccupant(nil)
         end
@@ -72,7 +72,7 @@ function Board:moveCursor(dx, dy, wrap, blockOccupied)
         end
     end
 
-    self.cursor:move(dx, dy, self.width, self.height, wrap)
+    self.cursor:move(dx, dy, self.maxWidth, self.maxHeight, wrap)
     currentCell = self:cellAtCursor()
 
     if currentCell ~= nil then
@@ -106,8 +106,8 @@ function Board:cellAtCoord(x,y)
 end
 
 function Board:drawOccupantInfo()
-    for y = 1, self.height do
-        for x = 1, self.width do
+    for y = 1, self.maxHeight do
+        for x = 1, self.maxWidth do
             local cell = self.grid[y][x]
             cell:drawOccupantInfo()
         end
@@ -115,7 +115,7 @@ function Board:drawOccupantInfo()
 end
 
 function Board:inBounds(x, y)
-    return x > 0 and x <= self.width and y > 0 and y <= self.height
+    return x > 0 and x <= self.maxWidth and y > 0 and y <= self.maxHeight
 end
 
 function Board:worldToCellCoord(x,y)

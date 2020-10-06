@@ -1,3 +1,5 @@
+-- The pico 8 color pallet
+
 return {
     RGBA(  0,   0,   0), --0
     RGBA( 29,  43,  83), --1

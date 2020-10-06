@@ -6,8 +6,8 @@ Board = require 'libraries.doodlehouse.board.board'
 GameBoard = Base:extend()
 
 function GameBoard:constructor(w, h, ox, oy, cellSize, levelCount, onPalindrome, onComplete, ids)
-    self.width = w or 5
-    self.height = h or 5
+    self.maxWidth = w or 5
+    self.maxHeight = h or 5
     self.cellSize = cellSize or 16
     self.offsetX = ox or 0
     self.offsetY = oy or 0
@@ -26,7 +26,7 @@ function GameBoard:constructor(w, h, ox, oy, cellSize, levelCount, onPalindrome,
     self.adding = false
     self.animating = false
     
-    self.board = Board(self.width, self.height, self.cellSize, self.offsetX, self.offsetY)
+    self.board = Board(self.maxWidth, self.maxHeight, self.cellSize, self.offsetX, self.offsetY)
     self.board:new()
 
     self.onPalindrome = onPalindrome or doNothing
@@ -35,8 +35,8 @@ end
 
 function GameBoard:fillBoard()
     self.animating = true
-    for y = 1, self.height do
-        for x = 1, self.width do
+    for y = 1, self.maxHeight do
+        for x = 1, self.maxWidth do
             self:addBlock(x,y)
         end
     end
@@ -75,7 +75,7 @@ end
 
 function GameBoard:getDropCell(cell)
     local targetY = cell.y
-    for i = cell.y, self.height do
+    for i = cell.y, self.maxHeight do
         local y = i
         if self.board:inBounds(cell.x, y) then
             local pt = self.board:cellAtCoord(cell.x, y)
@@ -142,8 +142,8 @@ function GameBoard:checkForPalindrome(cellList)
         end)
 
         Timer.after(0.3, function()
-            for y = 1, self.height do
-                for x = 1, self.width do
+            for y = 1, self.maxHeight do
+                for x = 1, self.maxWidth do
                     if self.board:cellAtCoord(x, y):isEmpty() then
                         self:addBlock(x, y)
                     end
@@ -170,7 +170,7 @@ end
 function GameBoard:setBlock(x, y, block)
     local targetCell = self.board.grid[y][x]
     block.position.x = targetCell.wx
-    block.position.y = targetCell.wy - (x * 10) - ((y + 16) * self.height)
+    block.position.y = targetCell.wy - (x * 10) - ((y + 16) * self.maxHeight)
     self.board.grid[y][x]:setOccupant(block)
     table.insert(self.blocks, block)
 end
@@ -191,8 +191,8 @@ function GameBoard:draw()
     love.graphics.setScissor(
         (self.offsetX + self.cellSize),
         (self.offsetY + self.cellSize),
-        (self.width * self.cellSize),
-        (self.height * self.cellSize)
+        (self.maxWidth * self.cellSize),
+        (self.maxHeight * self.cellSize)
     )
     for _, block in pairs(self.blocks) do
         block:draw()
@@ -210,8 +210,8 @@ function GameBoard:draw()
         'line',
         self.offsetX + self.cellSize,
         self.offsetY + self.cellSize,
-        self.width * self.cellSize,
-        self.height * self.cellSize
+        self.maxWidth * self.cellSize,
+        self.maxHeight * self.cellSize
     )
     --self.board:drawOccupantInfo()
     -- cursor
@@ -223,15 +223,15 @@ function GameBoard:draw()
 end
 
 function GameBoard:drawCapturedSets(offsetX, offsetY)
-    local cSize = 1
-    local startX = offsetX or (self.width * self.cellSize) + self.offsetX + self.cellSize + 4
-    local startY = offsetY or self.cellSize - 1 + self.offsetY
+    local cSize = 2
+    local startX = offsetX or (self.maxWidth * self.cellSize) + self.offsetX + self.cellSize + 4
+    local startY = offsetY or self.cellSize + self.offsetY
     for i, plaindrome in pairs(self.plaindromeSets) do
         local x = startX
         local y = startY + (i * cSize)
         for j, id in pairs(plaindrome) do
             setColor(id)
-            love.graphics.rectangle("fill", x + j, y, cSize, cSize)
+            love.graphics.rectangle("fill", x + (j * cSize), y, cSize, cSize)
         end
     end
 
@@ -245,7 +245,7 @@ end
 function GameBoard:drawCurrentSet(ox, oy)
     local previewSize = 8
     local startX = ox or self.offsetX + self.cellSize
-    local startY = oy or self.offsetY + ((self.height + 1) * self.cellSize) + 2
+    local startY = oy or self.offsetY + ((self.maxHeight + 1) * self.cellSize) + 2
     local padding = 1
     local wraplen = 15
     for i, cell in pairs(self.path.cells) do
@@ -267,7 +267,7 @@ function GameBoard:dropToEmptys(cellList)
 
     -- bottom to the top of the column
     --for i = 1, #complete do
-    local minX = self.width
+    local minX = self.maxWidth
     local maxX = 1
 
     for _, cell in pairs(cellList) do
@@ -275,7 +275,7 @@ function GameBoard:dropToEmptys(cellList)
         if(cell.x > maxX) then maxX = cell.x end
     end
 
-    for y = self.height, 2, -1 do
+    for y = self.maxHeight, 2, -1 do
         for x = minX, maxX do
             -- replace block with block above
             local fromCell = self.board:cellAtCoord(x, y - 1)

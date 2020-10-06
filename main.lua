@@ -5,12 +5,15 @@ Moonshine = require('libraries.moonshine')
 MenuState = require 'src.gameStates.menuState'
 GameState = require 'src.gameStates.gameState'
 HelpState = require 'src.gameStates.helpState'
+Console = require 'src.console'
 
 function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest", 0)
     love.keyboard.setKeyRepeat(true)
 
     setFont(Fonts.caption)
+
+    console = Console(game_width, game_height, timer)
 
     effectsOn = true
     debug = false
@@ -96,6 +99,7 @@ function love.draw()
     end
 
     if debug then drawDebug() end
+    console:draw()
 end
 
 function drawDebug()
@@ -128,6 +132,7 @@ function love.update(dt)
 
     state:update(dt)
     Timer.update(dt)
+    console:update(dt)
 end
 
 -- function love.mousemoved(x, y, dx, dy)
@@ -149,6 +154,14 @@ function love.resize(w, h)
     end
 end
 
+function love.textinput(t)
+    console:textinput(t)
+end
+
+function love.textedited(t)
+    console:textedited(t)
+end
+
 function love.keypressed(key, scancode, isrepeat)
     if key == 'f' then
         love.window.setFullscreen(not love.window.getFullscreen())
@@ -163,12 +176,15 @@ function love.keypressed(key, scancode, isrepeat)
     elseif key == '4' then
         g_offsetY = g_offsetY - 1
     end
-
-    if key == 'e' then
-        effectsOn = not effectsOn
-    elseif key == 'd' then
-        debug = not debug
+    
+    if not console.isOpen then
+        if key == 'e' then
+            effectsOn = not effectsOn
+        elseif key == 'd' then
+            debug = not debug
+        end
+        state:keypressed(key, scancode, isrepeat)
     end
-
-    state:keypressed(key, scancode, isrepeat)
+    
+    console:keypressed(key, scancode, isrepeat)
 end

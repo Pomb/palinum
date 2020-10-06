@@ -1,4 +1,4 @@
-require('libraries.doodlehouse.dscolor.colorized')
+require('libraries.doodlehouse.dscolor.rgba')
 Colors = require('libraries.doodlehouse.dscolor.colors')
 
 -- takes the number

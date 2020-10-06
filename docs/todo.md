@@ -7,9 +7,9 @@
 
 - [x] shout windows
     - [x] show box with text in it
-    - [ ] requires dismiss
-    - [ ] has options to select
-        - [ ] selected window tree, collapse all once selected an item that dosn't open more windows
+    - [?] requires dismiss
+    - [?] has options to select
+        - [?] selected window tree, collapse all once selected an item that dosn't open more windows
 
 - [ ] palindrom scoring
 

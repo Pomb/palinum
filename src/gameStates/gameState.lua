@@ -91,7 +91,7 @@ function GameState:levelUp()
     self.blockInput = true
     self.level = self.level + 1
 
-    local box = Box(0, 100, game_width, 100, 7, 'level '..self.level)
+    local box = Box('level '..self.level, 0, 100, game_width, 100, 0, 7, 8)
     table.insert(self.boxes, box)
     Timer.tween(1, {
         [box.position] = {y = 50},
@@ -156,8 +156,10 @@ end
 function GameState:keypressed(key, scancode, isrepeat)
     if key == 'z' then
         changeState('menu')
+    elseif key == 'l' then
+        self.gameboard.levelCount = 1
     end
-    
+
     if self.blockInput or self.gameboard.animating then return end
     if key == 'left' then self:move(-1, 0) end
     if key == 'right' then self:move(1, 0) end
