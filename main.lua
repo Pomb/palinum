@@ -15,6 +15,20 @@ function love.load()
 
     console = Console(game_width, game_height, timer)
 
+    -- console commands
+    console:addCommand("fullscreen", function()
+        toggleFullscreen()
+        console:addDescriptionLine('fullscreen = '..tostring(love.window.getFullscreen()))
+    end, "toggles fullscreen mode")
+    console:addCommand("debug", function()
+        debug = not debug
+        console:addDescriptionLine('debug = '..tostring(debug))
+    end, "toggles debug info overlay")
+    console:addCommand("effects", function()
+        effectsOn = not effectsOn
+        console:addDescriptionLine('effects = '..tostring(effectsOn))
+    end, "toggles the effects stack")
+
     effectsOn = true
     debug = false
 
@@ -90,14 +104,14 @@ function love.draw()
     love.graphics.pop()
 
     if effectsOn then
-    Effect(
-        function ()
-            love.graphics.draw(canvas, 0, 0, 0, scale, scale, g_offsetX, g_offsetY, 0, 0)
-        end)
+        Effect(function () draw() end)
     else
-        love.graphics.draw(canvas, 0, 0, 0, scale, scale, g_offsetX, g_offsetY, 0, 0)
+        draw()
     end
+end
 
+function draw()
+    love.graphics.draw(canvas, 0, 0, 0, scale, scale, g_offsetX, g_offsetY, 0, 0)
     if debug then drawDebug() end
     console:draw()
 end
@@ -158,30 +172,20 @@ function love.textinput(t)
     console:textinput(t)
 end
 
-function love.textedited(t)
-    console:textedited(t)
+function toggleFullscreen()
+    love.window.setFullscreen(not love.window.getFullscreen())
 end
 
 function love.keypressed(key, scancode, isrepeat)
-    if key == 'f' then
-        love.window.setFullscreen(not love.window.getFullscreen())
-    end
-
-    if key == '1' then
-        g_offsetX = g_offsetX + 1
-    elseif key == '2' then
-        g_offsetX = g_offsetX - 1
-    elseif key == '3' then
-        g_offsetY = g_offsetY + 1
-    elseif key == '4' then
-        g_offsetY = g_offsetY - 1
-    end
-    
     if not console.isOpen then
-        if key == 'e' then
-            effectsOn = not effectsOn
-        elseif key == 'd' then
-            debug = not debug
+        if key == '1' then
+            g_offsetX = g_offsetX + 1
+        elseif key == '2' then
+            g_offsetX = g_offsetX - 1
+        elseif key == '3' then
+            g_offsetY = g_offsetY + 1
+        elseif key == '4' then
+            g_offsetY = g_offsetY - 1
         end
         state:keypressed(key, scancode, isrepeat)
     end

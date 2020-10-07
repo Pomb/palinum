@@ -16,7 +16,8 @@ Fonts = {
     body = love.graphics.newFont('fonts/PICO-8mono.ttf', FontSizes.mediumAlt),
     title = love.graphics.newFont('fonts/PICO-8mono.ttf', FontSizes.large),
     heroTitle = love.graphics.newFont('fonts/PICO-8mono.ttf', FontSizes.massive),
-    console = love.graphics.newFont('fonts/CourierNew.ttf', FontSizes.Large)
+    console = love.graphics.newFont('fonts/monaco.ttf', FontSizes.mediumAlt),
+    console2 = love.graphics.newFont('fonts/CourierNew.ttf', FontSizes.large)
 }
 
 function setFont(font)
