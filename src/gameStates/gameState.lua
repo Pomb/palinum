@@ -59,9 +59,8 @@ function GameState:setUpLevel()
 
     if self.gameboard ~= nil then
         wasAdding = self.gameboard.adding
-        xPos = self.gameboard.board.cursor.x
-        yPos = self.gameboard.board.cursor.y
-        self.gameboard:clearBoard()
+        xPos = clamp(self.gameboard.board.cursor.x, 1, width)
+        yPos = clamp(self.gameboard.board.cursor.y, 1, height)
     end
     self.gameboard = GameBoard(width, height, offsetX, offsetY, self.cellSize, self:nextLevelCount(), nil,
             function()
@@ -87,6 +86,11 @@ function GameState:nextLevelCount()
     return 10 + math.ceil((self.level * 100) * 0.25);
 end
 
+function GameState:setLevel(level)
+    self.level = level
+    self:setUpLevel()
+end
+
 function GameState:levelUp()
     self.blockInput = true
     self.level = self.level + 1
@@ -105,11 +109,11 @@ function GameState:levelUp()
         }):ease(Curves.inQuart)
     end)
 
-    Timer.after(2, function() 
+    Timer.after(2, function()
         self.gameboard:clearBoard()
     end)
 
-    Timer.after(4, function() 
+    Timer.after(4, function()
         table.remove(self.boxes, 1)
     end)
 

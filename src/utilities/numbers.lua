@@ -12,6 +12,10 @@ function wrap(val, min, max)
     end
 end
 
+function lerp(a, b, t)
+    return (1 - t) * a + (t * b)
+end
+
 function cardinalDirection(x1, y1, x2, y2)
     
     if x1 == x2 then --vertical

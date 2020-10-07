@@ -87,13 +87,13 @@ function HelpState:draw()
     setColor(1)
     if(self.step == 3) then setColor(7)
     else setColor(1) end
-    love.graphics.print("- create palindroms to score", 10, 28)
+    love.graphics.print("- create palindromes to score", 10, 28)
     if(self.step == 4) then setColor(7)
     else setColor(1) end
     love.graphics.print("- minimum length of 3", 10, 34)
     if(self.step == 5) then setColor(7)
     else setColor(1) end
-    love.graphics.print('palindrom\n\n  "a sequence that is the\n\n     same forwards and backwards"', 10, 48)
+    love.graphics.print('palindrome\n\n  "a sequence that is the\n\n     same forwards and backwards"', 10, 48)
 
     setColor(7)
     love.graphics.printf('z', -16, 128, game_width/scale, 'center')

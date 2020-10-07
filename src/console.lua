@@ -21,6 +21,14 @@ function Console:constructor(width, height, backingColor, alpha)
     self.commands = {}
     self.rootDirectory = '/palinum'
     
+    self.cursor = {
+        x = 0,
+        y = self.maxHeight - 50,
+        width = 8,
+        height = 15,
+        color = 12
+    }
+
     self.backing = {
         color = backingColor or 1,
         alpha = alpha or 0.85,
@@ -28,16 +36,16 @@ function Console:constructor(width, height, backingColor, alpha)
         size = {width = self.maxWidth, height = 0}
     }
 
-    self:addCommand("hello", function()
+    self:addCommand("hello", function(...)
         self:addLine("Welcome to the console", self.dirColor, 20)
         self:addLine("There are a couple commands avaiable, to see them type: help", self.dirColor, 20)
     end, "welcome")
-    self:addCommand("help", function()
+    self:addCommand("help", function(...)
         for _, value in pairs(self.commands) do
             table.insert(self.lines, {text = string.lpad(value.command, 20)..'- '..value.help, color = self.detailTextColor, indent = 10})
         end
     end, "show the available commands in the console")
-    self:addCommand("quit", function()
+    self:addCommand("quit", function(...)
         love.event.quit()
     end, "quit the game, also with cmd+Q (mac) or alt+F4 (pc)")
 end
@@ -93,22 +101,33 @@ function Console:addDescriptionLine(text)
     self:addLine(text, self.detailTextColor, 10)
 end
 
+function Console:addErrorLine(text)
+    self:addLine('palinum [ERROR]: '..text, self.errorColor, 10)
+end
+
 function Console:executeCommand()
+    local split = string.split(self.commandInput, " ")
+    local c = split[1]
+    local arg = split[2]
     self:addLine(self.commandInput, self.textColor)
-    local c = self.commandInput
     self.commandInput = ''
 
+    for key, value in pairs(split) do
+        print(key, value)
+    end
     if c ~= nil then
         if self.commands[c] ~= nil then
-            self.commands[c].callback()
+            self.commands[c].callback(arg)
         else
-            self:addLine('plalinum: command not found: '..c, self.errorColor)
+            self:addErrorLine('command not found: '..c)
         end
     end
 end
 
 function Console:update(dt)
     if not self.enabled then return end
+
+    self.cursor.x = 25 + self.indent + Fonts.console:getWidth(self.rootDirectory) + Fonts.console:getWidth(self.commandInput)
 end
 
 function Console:draw()
@@ -135,6 +154,11 @@ function Console:draw()
     setColor(self.textColor)
     love.graphics.print(self.commandInput, self.indent + (#self.rootDirectory * 10), h)
     setFont(Fonts.caption)
+    setColor(self.cursor.color, 0.8)
+    local t = math.floor(love.timer.getTime() * 2)
+    if (t % 2) == 0 then
+        love.graphics.rectangle("fill", self.cursor.x, self.cursor.y, self.cursor.width, self.cursor.height)
+    end
 end
 
 function Console:keypressed(key, code, isRepeat)

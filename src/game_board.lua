@@ -18,7 +18,7 @@ function GameBoard:constructor(w, h, ox, oy, cellSize, levelCount, onPalindrome,
 
     self.path = Path(self.cellSize)
     self.hintPath = Path(self.cellSize, 0.5)
-    self.palinLength = 3
+    self.minPalindromeLength = 3
 
     self.blocks = {}
     self.plaindromeSets = {}
@@ -29,8 +29,12 @@ function GameBoard:constructor(w, h, ox, oy, cellSize, levelCount, onPalindrome,
     self.board = Board(self.maxWidth, self.maxHeight, self.cellSize, self.offsetX, self.offsetY)
     self.board:new()
 
+    -- TODO: change these to use knife events
     self.onPalindrome = onPalindrome or doNothing
     self.onComplete = onComplete or doNothing
+end
+
+function doNothing()
 end
 
 function GameBoard:fillBoard()
@@ -94,7 +98,7 @@ function GameBoard:getDropCell(cell)
 end
 
 function GameBoard:checkForPalindrome(cellList)
-    if #cellList < self.palinLength then return end
+    if #cellList < self.minPalindromeLength then return end
     self.animating = true
 
     local length = #cellList
@@ -152,6 +156,14 @@ function GameBoard:checkForPalindrome(cellList)
         end)
 
         Timer.after(0.5, function()
+            -- normalize value for the maximum length to shake
+            local durationT = (math.min(#palindromeSet - self.minPalindromeLength, 8) / 8)
+            local frequencyT = (math.min(#palindromeSet - self.minPalindromeLength, 10) / 10)
+            -- map the t value to a duration, between 0.3, and 1.5
+            -- where a palindrome of 3 shakes for 0 and 8 shakes for 1.5
+            local duration = lerp(0, 1.5, durationT)
+            local frequency = lerp(0.3, 2, frequencyT)
+            shake(duration, frequency)
             self.adding = true
             self:add()
         end)
@@ -264,9 +276,6 @@ function GameBoard:drawCurrentSet(ox, oy)
 end
 
 function GameBoard:dropToEmptys(cellList)
-
-    -- bottom to the top of the column
-    --for i = 1, #complete do
     local minX = self.maxWidth
     local maxX = 1
 
@@ -277,7 +286,6 @@ function GameBoard:dropToEmptys(cellList)
 
     for y = self.maxHeight, 2, -1 do
         for x = minX, maxX do
-            -- replace block with block above
             local fromCell = self.board:cellAtCoord(x, y - 1)
             local toCell = self:getDropCell(fromCell)
             if fromCell:hasOccupant() then

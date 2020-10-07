@@ -36,20 +36,35 @@ function love.load()
         console:addDescriptionLine('digits 11/11/11 11:11 and long digits 02/02/2020.')
         console:addDescriptionLine('Sentence-length palindromes ignore capitalization, punctuation, and word boundaries.')
     end, "tell me about a palindrome")
+    console:addCommand("level", function(num)
+        local levelNumber = tonumber(num) or 1
+        if levelNumber then
+            if state ~= stateLookup['game'] then changeState('game') end
+            stateLookup['game']:setLevel(levelNumber)
+        else
+            console:addErrorLine(tostring(num)..' is not a valid level number, please try again with a whole number')
+        end
+    end, "load the level number")
 
     effectsOn = true
     debug = false
 
     g_offsetX = 0
     g_offsetY = 0
-    menuCol = 1
+    
+    cameraShake = {
+        x = 0,
+        y = 0,
+        duration = 0,
+        frequency = 0,
+    }
 
+    menuCol = 1
     debugText = {
         ['fps'] = '',
         ['state'] = '',
         ['level'] = '',
     }
-
     stateLookup = {
         ['menu'] = MenuState(),
         ['game'] = GameState(),
@@ -76,9 +91,10 @@ function love.load()
     }
 end
 
-function doNothing()
+function shake(duration, frequency)
+    cameraShake.duration = cameraShake.duration + duration
+    cameraShake.frequency = cameraShake.frequency + frequency
 end
-
 
 function changeState(targetState)
     menuCol = 7
@@ -100,6 +116,7 @@ function love.draw()
     love.graphics.setCanvas(canvas)
     love.graphics.clear()
     love.graphics.setLineWidth(1)
+    love.graphics.translate(cameraShake.x, cameraShake.y)
     setColor(1, 1)
     love.graphics.rectangle('line', 4,3,(game_width/scale)-8,(game_height/scale)-6)
     setColor(0)
@@ -152,6 +169,16 @@ function love.update(dt)
     if effectsOn then Effect.scanlines.phase = math.sin(dt * 100) * 100 end
     debugText['fps'] = love.timer.getFPS()
 
+    if cameraShake.duration > 0 then
+        cameraShake.x = math.random(-1, 1) * cameraShake.frequency
+        cameraShake.y = math.random(-1, 1) * cameraShake.frequency
+        cameraShake.duration = cameraShake.duration - dt
+        cameraShake.frequency = cameraShake.frequency * cameraShake.duration
+    else
+        cameraShake.x = 0
+        cameraShake.y = 0
+    end
+
     state:update(dt)
     Timer.update(dt)
     console:update(dt)
@@ -186,6 +213,8 @@ function love.keypressed(key, scancode, isrepeat)
             g_offsetY = g_offsetY + 1
         elseif key == '4' then
             g_offsetY = g_offsetY - 1
+        elseif key == '0' then
+            shake(math.random(0.1, 1), math.random(0.1, 2))
         end
         state:keypressed(key, scancode, isrepeat)
     end

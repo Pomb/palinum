@@ -14,6 +14,12 @@
     - got 6 levels and then it's more of the same
 
 - [ ] palindrom scoring
+- [ ] juicing the difficulty of the palindrome
+    - [ ] more rainbow for more palindrome!
+
 
 ## Scope dragons
-- uh some other mechanics that get introduced as levels progress or something...
+__uh some other mechanics that get introduced as levels progress or something...__
+- [ ] obstacle block
+    - obstacle sits on a tile, requires the obstacle color inside the palindrome to complete
+
