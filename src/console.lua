@@ -15,7 +15,7 @@ function Console:constructor(width, height, backingColor, alpha)
     self.textColor = 12
     self.indent = 20
     self.detailTextColor = 6
-    self.maxLines = 30
+    self.maxLines = 100
     self.dirColor = 11
     self.errorColor = 8
     self.commands = {}
@@ -122,10 +122,10 @@ function Console:draw()
     local diff = #self.lines - self.maxLines
     local starti = math.max(1, diff)
     local endi = math.max(#self.lines, #self.lines - starti)
-    -- FIXME add the differnce of what's visible removed on the Y offset in the print
+
     for i = starti, endi do
         setColor(self.lines[i].color)
-        love.graphics.print(self.lines[i].text, self.indent + (self.lines[i].indent or 0), 20 + ((i - 1) * 14))
+        love.graphics.print(self.lines[i].text, self.indent + (self.lines[i].indent or 0), h - 50 - (endi - i) * 16)
     end
 
     setColor(0)

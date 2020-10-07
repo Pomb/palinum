@@ -28,6 +28,14 @@ function love.load()
         effectsOn = not effectsOn
         console:addDescriptionLine('effects = '..tostring(effectsOn))
     end, "toggles the effects stack")
+    -- TODO: make the console be able to wrap long text on the width of the screen.
+    console:addCommand("history", function() 
+        console:addDescriptionLine('A palindrome is a word, number, phrase, or other sequence of characters which')
+        console:addDescriptionLine('reads the same backward as forward, such as madam, racecar.')
+        console:addDescriptionLine('There are also numeric palindromes, including date/time stamps using short')
+        console:addDescriptionLine('digits 11/11/11 11:11 and long digits 02/02/2020.')
+        console:addDescriptionLine('Sentence-length palindromes ignore capitalization, punctuation, and word boundaries.')
+    end, "tell me about a palindrome")
 
     effectsOn = true
     debug = false
@@ -148,14 +156,6 @@ function love.update(dt)
     Timer.update(dt)
     console:update(dt)
 end
-
--- function love.mousemoved(x, y, dx, dy)
---     state:mousemoved(x, y, dx, dy)
--- end
-
--- function love.mousepressed(x, y, button)
---     state:mousepressed(x, y, button)
--- end
 
 function love.resize(w, h)
     print('resized', w, h)
