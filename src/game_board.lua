@@ -1,4 +1,5 @@
 Path = require 'src.objects.path'
+Particle = require 'src.objects.particle'
 Base = require 'libraries.knife.knife.base'
 Timer = require 'libraries.knife.knife.timer'
 Board = require 'libraries.doodlehouse.board.board'
@@ -9,6 +10,7 @@ function GameBoard:constructor(w, h, ox, oy, cellSize, levelCount, onPalindrome,
     self.maxWidth = w or 5
     self.maxHeight = h or 5
     self.cellSize = cellSize or 16
+    self.halfCell = self.cellSize / 2
     self.offsetX = ox or 0
     self.offsetY = oy or 0
     self.levelCount = levelCount or 10
@@ -123,13 +125,14 @@ function GameBoard:checkForPalindrome(cellList)
                     cell:setOccupant(nil)
                 end
             end
-
+            
             self.count = self.count + #palindromeSet
             
             table.insert(self.plaindromeSets, palindromeSet)
-
+            
             for i = #self.blocks, 1, -1 do
                 if self.blocks[i].dead then
+                    makeParticles(self.blocks[i].position.x + self.halfCell, self.blocks[i].position.y + self.halfCell, self.blocks[i].id)
                     table.remove(self.blocks, i)
                 end
             end

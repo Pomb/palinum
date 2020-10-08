@@ -59,6 +59,8 @@ function love.load()
         frequency = 0,
     }
 
+    particles = {}
+
     menuCol = 1
     debugText = {
         ['fps'] = '',
@@ -124,10 +126,16 @@ function love.draw()
     dropPrint(state.name, 10, 0, menuCol)
 
     state:draw()
+
+    for _, particle in pairs(particles) do
+        particle:draw()
+    end
+
     love.graphics.setColor(1,1,1,1)
     love.graphics.setCanvas()
     love.graphics.pop()
 
+    
     if effectsOn then
         Effect(function () draw() end)
     else
@@ -165,6 +173,13 @@ function dropPrint(text, x, y, c, dc)
     love.graphics.print(text, x, y)
 end
 
+function makeParticles(x, y, color, count)
+    local numParticles = count or 20
+    for i = 1, numParticles do
+        Particle(x, y, color)
+    end
+end
+
 function love.update(dt)
     if effectsOn then Effect.scanlines.phase = math.sin(dt * 100) * 100 end
     debugText['fps'] = love.timer.getFPS()
@@ -177,6 +192,13 @@ function love.update(dt)
     else
         cameraShake.x = 0
         cameraShake.y = 0
+    end
+
+    for i = #particles, 1, -1 do
+        particles[i]:update(dt)
+        if particles[i]:isDead() then
+           table.remove(particles, i)
+        end
     end
 
     state:update(dt)
