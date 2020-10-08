@@ -96,8 +96,8 @@ function HelpState:draw()
     love.graphics.print('palindrome\n\n  "a sequence that is the\n\n     same forwards and backwards"', 10, 48)
 
     setColor(7)
-    love.graphics.printf('z', -16, 128, game_width/scale, 'center')
-    love.graphics.printf('back', 0, 128, game_width/scale, 'center')
+    love.graphics.printf('Z', -16, 128, game_width/scale, 'center')
+    love.graphics.printf('BACK', 0, 128, game_width/scale, 'center')
 
     self.gameboard:draw()
     self.gameboard:drawCurrentSet(55, (7*16) + 4)

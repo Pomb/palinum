@@ -7,7 +7,7 @@ function Particle:constructor(x, y, color)
     self.size = 10
     self.color = color or 7
     self.t = 0
-    self.lifetime = 1
+    self.lifetime = love.math.random(0.5, 1.2)
     self.speed = love.math.random(1, 2)
     self.damp = 0.98
     

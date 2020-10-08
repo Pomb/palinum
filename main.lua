@@ -1,7 +1,7 @@
 require 'libraries.doodlehouse.dscolor.doodlecolor'
 require 'src.fonts'
 Timer = require 'libraries.knife.knife.timer'
-Moonshine = require('libraries.moonshine')
+Moonshine = require 'libraries.moonshine'
 MenuState = require 'src.gameStates.menuState'
 GameState = require 'src.gameStates.gameState'
 HelpState = require 'src.gameStates.helpState'
@@ -9,45 +9,19 @@ Console = require 'src.console'
 
 function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest", 0)
+    love.math.setRandomSeed(love.timer.getTime())
     love.keyboard.setKeyRepeat(true)
 
     setFont(Fonts.caption)
 
     console = Console(game_width, game_height, timer)
+    setupConsoleCommands()
 
-    -- console commands
-    console:addCommand("fullscreen", function()
-        toggleFullscreen()
-        console:addDescriptionLine('fullscreen = '..tostring(love.window.getFullscreen()))
-    end, "toggles fullscreen mode")
-    console:addCommand("debug", function()
-        debug = not debug
-        console:addDescriptionLine('debug = '..tostring(debug))
-    end, "toggles debug info overlay")
-    console:addCommand("effects", function()
-        effectsOn = not effectsOn
-        console:addDescriptionLine('effects = '..tostring(effectsOn))
-    end, "toggles the effects stack")
-    -- TODO: make the console be able to wrap long text on the width of the screen.
-    console:addCommand("history", function() 
-        console:addDescriptionLine('A palindrome is a word, number, phrase, or other sequence of characters which')
-        console:addDescriptionLine('reads the same backward as forward, such as madam, racecar.')
-        console:addDescriptionLine('There are also numeric palindromes, including date/time stamps using short')
-        console:addDescriptionLine('digits 11/11/11 11:11 and long digits 02/02/2020.')
-        console:addDescriptionLine('Sentence-length palindromes ignore capitalization, punctuation, and word boundaries.')
-    end, "tell me about a palindrome")
-    console:addCommand("level", function(num)
-        local levelNumber = tonumber(num) or 1
-        if levelNumber then
-            if state ~= stateLookup['game'] then changeState('game') end
-            stateLookup['game']:setLevel(levelNumber)
-        else
-            console:addErrorLine(tostring(num)..' is not a valid level number, please try again with a whole number')
-        end
-    end, "load the level number")
-
-    effectsOn = true
-    debug = false
+    settings = {
+        posteffects = true,
+        particles = true,
+        debug = false,
+    }
 
     g_offsetX = 0
     g_offsetY = 0
@@ -93,6 +67,48 @@ function love.load()
     }
 end
 
+function setupConsoleCommands()
+    -- console commands
+    console:addCommand("fullscreen", function()
+        toggleFullscreen()
+        console:addDescriptionLine('fullscreen = '..tostring(love.window.getFullscreen()))
+    end, "toggles fullscreen mode")
+
+    console:addCommand("debug", function()
+        settings.debug = not settings.debug
+        console:addDescriptionLine('debug = '..tostring(settings.debug))
+    end, "toggles debug info overlay")
+
+    console:addCommand("effects", function()
+        settings.posteffects = not settings.posteffects
+        console:addDescriptionLine('effects = '..tostring(settings.posteffects))
+    end, "toggles the post processing effects stack")
+
+    console:addCommand("particles", function()
+        settings.particles = not settings.particles
+        console:addDescriptionLine('particles = '..tostring(settings.particles))
+    end, "toggles particle effects")
+
+    -- TODO: make the console be able to wrap long text on the width of the screen.
+    console:addCommand("about", function()
+        console:addDescriptionLine('A palindrome is a word, number, phrase, or other sequence of characters which')
+        console:addDescriptionLine('reads the same backward as forward, such as madam, racecar.')
+        console:addDescriptionLine('There are also numeric palindromes, including date/time stamps using short')
+        console:addDescriptionLine('digits 11/11/11 11:11 and long digits 02/02/2020.')
+        console:addDescriptionLine('Sentence-length palindromes ignore capitalization, punctuation, and word boundaries.')
+    end, "tell me about a palindrome")
+
+    console:addCommand("level", function(num)
+        local levelNumber = tonumber(num)
+        if levelNumber then
+            if state ~= stateLookup['game'] then changeState('game') end
+            stateLookup['game']:setLevel(levelNumber)
+        else
+            console:addErrorLine(tostring(num)..' is not a valid level number, please try again with a whole number')
+        end
+    end, "load the level number")
+end
+
 function shake(duration, frequency)
     cameraShake.duration = cameraShake.duration + duration
     cameraShake.frequency = cameraShake.frequency + frequency
@@ -114,12 +130,13 @@ function changeState(targetState)
 end
 
 function love.draw()
+    setFont(Fonts.caption)
     love.graphics.push()
     love.graphics.setCanvas(canvas)
     love.graphics.clear()
-    love.graphics.setLineWidth(1)
     love.graphics.translate(cameraShake.x, cameraShake.y)
-    setColor(1, 1)
+    love.graphics.setLineWidth(2)
+    setColor(1)
     love.graphics.rectangle('line', 4,3,(game_width/scale)-8,(game_height/scale)-6)
     setColor(0)
     love.graphics.rectangle('fill', 8, 0, ((#state.name)*scale) + 3, 4)
@@ -136,7 +153,7 @@ function love.draw()
     love.graphics.pop()
 
     
-    if effectsOn then
+    if settings.posteffects then
         Effect(function () draw() end)
     else
         draw()
@@ -145,7 +162,7 @@ end
 
 function draw()
     love.graphics.draw(canvas, 0, 0, 0, scale, scale, g_offsetX, g_offsetY, 0, 0)
-    if debug then drawDebug() end
+    if settings.debug then drawDebug() end
     console:draw()
 end
 
@@ -174,9 +191,11 @@ function dropPrint(text, x, y, c, dc)
 end
 
 function makeParticles(x, y, color, count)
-    local numParticles = count or 20
-    for i = 1, numParticles do
-        Particle(x, y, color)
+    if settings.particles then
+        local numParticles = count or 20
+        for i = 1, numParticles do
+            Particle(x, y, color)
+        end
     end
 end
 
@@ -197,7 +216,7 @@ function love.update(dt)
     for i = #particles, 1, -1 do
         particles[i]:update(dt)
         if particles[i]:isDead() then
-           table.remove(particles, i)
+        table.remove(particles, i)
         end
     end
 

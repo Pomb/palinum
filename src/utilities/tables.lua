@@ -4,6 +4,13 @@ function printTable(t)
     end
 end
 
+function mergeTable(t1, t2)
+    for k, v in pairs(t2) do
+        t1[k] = v
+    end
+    return t1
+end
+
 function clone(t)
     local clone = {}
     for k, v in pairs(t) do

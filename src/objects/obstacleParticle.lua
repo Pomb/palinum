@@ -3,11 +3,11 @@ Particle = require 'src.objects.particle'
 ObstacleParticle = Particle:extend()
 
 function ObstacleParticle:constructor(x, y)
-    self.position = {x = x, y = y, dx = 0, dy = 1}
+    self.position = {x = x, y = y, dx = 0, dy = 2}
     self.t = 0
     self.lifetime = 3
-    self.speed = love.math.random(1, 2)
-    self.damp = 1.1
+    self.speed = 0.2
+    self.damp = 1.2
     self.padding = 0.5
     self.gravity = 1
     table.insert(particles, self)
@@ -18,10 +18,8 @@ function ObstacleParticle:isDead()
 end
 
 function ObstacleParticle:draw()
-    --setColor(0)
-    --love.graphics.rectangle("fill", self.position.x + self.padding, self.position.y + self.padding, 16 - (self.padding * 2), 16 - (self.padding * 2))
-    setColor(5)
-    love.graphics.circle("fill", self.position.x + self.padding + 8, self.position.y + self.padding + 8, 8)
+    setColor(10)
+    love.graphics.circle("fill", self.position.x + self.padding + 8, self.position.y + self.padding + 8, 7)
     setColor(0)
     love.graphics.rectangle("fill", self.position.x + self.padding + 5, self.position.y + self.padding + 4, 16 - (self.padding * 2) - 8, 16 - (self.padding * 2) - 8)
     love.graphics.setColor(1,1,1,1)

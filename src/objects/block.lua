@@ -23,8 +23,12 @@ function Block:move(x, y, onComplete)
 end
 
 function Block:draw()
-    setColor(self.id)
     if self.matchable then
+        if(self.dead) then
+            setColor(7)
+        else
+            setColor(self.id)
+        end
         love.graphics.rectangle("fill", self.position.x + self.padding, self.position.y + self.padding, 16 - (self.padding * 2), 16 - (self.padding * 2))
     else
         -- setColor(0)

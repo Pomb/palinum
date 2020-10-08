@@ -19,8 +19,10 @@ function GameBoard:constructor(w, h, ox, oy, cellSize, levelCount, onPalindrome,
     self.count = 0
     self.ids = ids or {8, 12, 11, 10}
     --local ids = ids or {8, 12, 11, 13, 10, 5}
-    self.badBlockindex = 20
+    self.badBlockindex = 25
     self.blocksSpawned = 0
+    self.borderCol = 1
+    self.borderColors = {1, 8, 7, 0, 10, 12, 13, 11}
 
     self.path = Path(self.cellSize)
     self.hintPath = Path(self.cellSize, 0.5)
@@ -38,6 +40,8 @@ function GameBoard:constructor(w, h, ox, oy, cellSize, levelCount, onPalindrome,
     -- TODO: change these to use knife events
     self.onPalindrome = onPalindrome or doNothing
     self.onComplete = onComplete or doNothing
+
+    self.borderRoutine = nil
 end
 
 function doNothing()
@@ -133,21 +137,32 @@ function GameBoard:checkForPalindrome(cellList)
 
         Chain(
             function(go)
+                Timer.after(0.3, go)
+                for _, cell in pairs(cellList) do
+                    if cell:hasOccupant() then
+                        table.insert(palindromeSet, cell.occupant.id)
+                        cell.occupant.dead = true
+                    end
+                end
+                local colors = mergeTable(palindromeSet, {7, 0})
+                self.borderRoutine = Timer.every(0.2, function()
+                    self.borderCol = randomKey(colors)
+                end)
+            end,
+            function(go)
                 -- the path
                 for _, cell in pairs(cellList) do
                     if cell:hasOccupant() then
                         makeParticles(cell.wx + self.halfCell, cell.wy + self.halfCell, cell.occupant.id)
-                        cell.occupant.dead = true
-                        table.insert(palindromeSet, cell.occupant.id)
                         cell:setOccupant(nil)
                     end
                 end
-    
+
                 self.count = self.count + #palindromeSet
                 table.insert(self.plaindromeSets, palindromeSet)
                 self:removeDeadBlocks()
                 self.path:clear()
-                Timer.after(0.1, go)
+                Timer.after(0.3, go)
             end,
             function(go)
                 -- the initial palindrome drop
@@ -155,30 +170,34 @@ function GameBoard:checkForPalindrome(cellList)
                 if self.onPalindrome ~= nil then
                     self.onPalindrome()
                 end
-                Timer.after(1, go)
+                Timer.after(0.8, go)
             end,
             function(go)
+                self.borderCol = 1
+                self.borderRoutine:remove()
+                Timer.after(0.2, go)
+            end,
+            function(go)
+                -- TODO: repeat the unmatch cascade until no more blocks can fall
                 -- the unmatchable cascade
                 for x = 1, self.maxWidth do
                     local cell = self.board:cellAtCoord(x, self.maxHeight)
                     if cell:hasOccupant() and cell.occupant.matchable == false then
-                        print('dead block at the bottom? ', cell.x, cell.y)
-                        cell.occupant.dead = true
                         ObstacleParticle(cell.wx, cell.wy)
+                        cell.occupant.dead = true
                         cell:setOccupant(nil)
                         unmatchableCount = unmatchableCount + 1
                     end
                 end
-                Timer.after(0.1, go)
-            end,
-            function(go)
-                if(unmatchableCount > 0) then
-                    self:removeDeadBlocks()
-                    self:dropToEmptys();
-                    Timer.after(1, go)
-                else
-                    Timer.after(0.1, go)
-                end
+                Timer.after(0.1, function()
+                    if(unmatchableCount > 0) then
+                        self:removeDeadBlocks()
+                        self:dropToEmptys();
+                        Timer.after(1, go)
+                    else
+                        Timer.after(0.1, go)
+                    end
+                end)
             end,
             function(go)
                 -- refresh empties
@@ -201,8 +220,9 @@ function GameBoard:checkForPalindrome(cellList)
                 local frequency = lerp(0.3, 2, frequencyT)
                 shake(duration, frequency)
                 self.adding = true
+                
                 self:add()
-                Timer.after(0.5, go)
+                Timer.after(0.3, go)
             end,
             function (go)
                 -- clean up
@@ -235,8 +255,8 @@ end
 
 function GameBoard:addBlock(x, y)
     local block = Block(randomKey(self.ids), Timer, true)
-    if self.blocksSpawned % self.badBlockindex == 0 then
-        block = Block(5, Timer, false)
+    if ((self.blocksSpawned + 1) % self.badBlockindex) == 0 then
+        block = Block(10, Timer, false)
     end
     local targetCell = self.board.grid[y][x]
     block.position.x = targetCell.wx
@@ -262,13 +282,9 @@ function GameBoard:draw()
     love.graphics.setScissor()
 
 
-    if self.animating then
-        setColor(7)
-    else 
-        setColor(1)
-    end
-
+    
     -- border
+    setColor(self.borderCol)
     love.graphics.rectangle(
         'line',
         self.offsetX + self.cellSize,
@@ -286,12 +302,12 @@ function GameBoard:draw()
 end
 
 function GameBoard:drawCapturedSets(offsetX, offsetY)
-    local cSize = 2
+    local cSize = 1
     local startX = offsetX or (self.maxWidth * self.cellSize) + self.offsetX + self.cellSize + 4
     local startY = offsetY or self.cellSize + self.offsetY
     for i, plaindrome in pairs(self.plaindromeSets) do
         local x = startX
-        local y = startY + (i * cSize)
+        local y = startY + (i * cSize) + 0.5
         for j, id in pairs(plaindrome) do
             setColor(id)
             love.graphics.rectangle("fill", x + (j * cSize), y, cSize, cSize)
@@ -363,6 +379,7 @@ function GameBoard:add()
         self.adding = true
     else
         self.adding = false
+        self.board.cursor.full = false
         self:clear();
     end
 end

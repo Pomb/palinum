@@ -95,7 +95,7 @@ function GameState:levelUp()
     self.blockInput = true
     self.level = self.level + 1
 
-    local box = Box('level '..self.level, 0, 100, game_width, 100, 0, 7, 8)
+    local box = Box('level '..self.level, 0, 100, game_width, 100, 0, 7, 1)
     table.insert(self.boxes, box)
     Timer.tween(1, {
         [box.position] = {y = 50},
