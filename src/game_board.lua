@@ -1,8 +1,10 @@
 Path = require 'src.objects.path'
 Particle = require 'src.objects.particle'
+ObstacleParticle = require 'src.objects.obstacleParticle'
 Base = require 'libraries.knife.knife.base'
 Timer = require 'libraries.knife.knife.timer'
 Board = require 'libraries.doodlehouse.board.board'
+Chain = require 'libraries.knife.knife.chain'
 
 GameBoard = Base:extend()
 
@@ -17,6 +19,8 @@ function GameBoard:constructor(w, h, ox, oy, cellSize, levelCount, onPalindrome,
     self.count = 0
     self.ids = ids or {8, 12, 11, 10}
     --local ids = ids or {8, 12, 11, 13, 10, 5}
+    self.badBlockindex = 20
+    self.blocksSpawned = 0
 
     self.path = Path(self.cellSize)
     self.hintPath = Path(self.cellSize, 0.5)
@@ -73,9 +77,17 @@ function GameBoard:setCursorPos(x, y)
 end
 
 function GameBoard:moveCursor(dx, dy)
-    self.board:moveCursor(dx, dy)
-    if self.adding then
-        self:add()
+    local c = self.board:cellAtCursor();
+    local tc = self.board:cellAtCoord(c.x + dx, c.y + dy)
+    if tc ~= nil then
+        if tc:hasOccupant() then
+            self.board:moveCursor(dx, dy)
+            if self.adding then
+                self:add()
+            end
+        end
+    else
+        print('target cell is out of bounds')
     end
 end
 
@@ -117,69 +129,100 @@ function GameBoard:checkForPalindrome(cellList)
 
     if hasPalindrome then
         local palindromeSet = {}
-        Timer.after(0.1, function ()
-            for _, cell in pairs(cellList) do
-                if cell:hasOccupant() then
-                    cell.occupant.dead = true
-                    table.insert(palindromeSet, cell.occupant.id)
-                    cell:setOccupant(nil)
-                end
-            end
-            
-            self.count = self.count + #palindromeSet
-            
-            table.insert(self.plaindromeSets, palindromeSet)
-            
-            for i = #self.blocks, 1, -1 do
-                if self.blocks[i].dead then
-                    makeParticles(self.blocks[i].position.x + self.halfCell, self.blocks[i].position.y + self.halfCell, self.blocks[i].id)
-                    table.remove(self.blocks, i)
-                end
-            end
-            self.path:clear()
+        local unmatchableCount = 0
 
-        end)
-        
-        Timer.after(0.2, function ()
-            self:dropToEmptys(cellList);
-
-            if self.onPalindrome ~= nil then
-                self.onPalindrome()
-            end
-        end)
-
-        Timer.after(0.3, function()
-            for y = 1, self.maxHeight do
-                for x = 1, self.maxWidth do
-                    if self.board:cellAtCoord(x, y):isEmpty() then
-                        self:addBlock(x, y)
+        Chain(
+            function(go)
+                -- the path
+                for _, cell in pairs(cellList) do
+                    if cell:hasOccupant() then
+                        makeParticles(cell.wx + self.halfCell, cell.wy + self.halfCell, cell.occupant.id)
+                        cell.occupant.dead = true
+                        table.insert(palindromeSet, cell.occupant.id)
+                        cell:setOccupant(nil)
                     end
                 end
+    
+                self.count = self.count + #palindromeSet
+                table.insert(self.plaindromeSets, palindromeSet)
+                self:removeDeadBlocks()
+                self.path:clear()
+                Timer.after(0.1, go)
+            end,
+            function(go)
+                -- the initial palindrome drop
+                self:dropToEmptys();
+                if self.onPalindrome ~= nil then
+                    self.onPalindrome()
+                end
+                Timer.after(1, go)
+            end,
+            function(go)
+                -- the unmatchable cascade
+                for x = 1, self.maxWidth do
+                    local cell = self.board:cellAtCoord(x, self.maxHeight)
+                    if cell:hasOccupant() and cell.occupant.matchable == false then
+                        print('dead block at the bottom? ', cell.x, cell.y)
+                        cell.occupant.dead = true
+                        ObstacleParticle(cell.wx, cell.wy)
+                        cell:setOccupant(nil)
+                        unmatchableCount = unmatchableCount + 1
+                    end
+                end
+                Timer.after(0.1, go)
+            end,
+            function(go)
+                if(unmatchableCount > 0) then
+                    self:removeDeadBlocks()
+                    self:dropToEmptys();
+                    Timer.after(1, go)
+                else
+                    Timer.after(0.1, go)
+                end
+            end,
+            function(go)
+                -- refresh empties
+                for y = 1, self.maxHeight do
+                    for x = 1, self.maxWidth do
+                        if self.board:cellAtCoord(x, y):isEmpty() then
+                            self:addBlock(x, y)
+                        end
+                    end
+                end
+                Timer.after(0.5, go)
+            end,
+            function(go)
+                -- normalize value for the maximum length to shake
+                local durationT = (math.min(#palindromeSet - self.minPalindromeLength, 8) / 8)
+                local frequencyT = (math.min(#palindromeSet - self.minPalindromeLength, 10) / 10)
+                -- map the t value to a duration, between 0.3, and 1.5
+                -- where a palindrome of 3 shakes for 0 and 8 shakes for 1.5
+                local duration = lerp(0, 1.5, durationT)
+                local frequency = lerp(0.3, 2, frequencyT)
+                shake(duration, frequency)
+                self.adding = true
+                self:add()
+                Timer.after(0.5, go)
+            end,
+            function (go)
+                -- clean up
+                self.animating = false
+                if hasPalindrome and self.count >= self.levelCount then
+                    self.onComplete()
+                end
             end
-        end)
-
-        Timer.after(0.5, function()
-            -- normalize value for the maximum length to shake
-            local durationT = (math.min(#palindromeSet - self.minPalindromeLength, 8) / 8)
-            local frequencyT = (math.min(#palindromeSet - self.minPalindromeLength, 10) / 10)
-            -- map the t value to a duration, between 0.3, and 1.5
-            -- where a palindrome of 3 shakes for 0 and 8 shakes for 1.5
-            local duration = lerp(0, 1.5, durationT)
-            local frequency = lerp(0.3, 2, frequencyT)
-            shake(duration, frequency)
-            self.adding = true
-            self:add()
-        end)
-
+        )()
     else
         self.animating = false
     end
-    Timer.after(1.5, function()
-        self.animating = false
-        if hasPalindrome and self.count >= self.levelCount then
-            self.onComplete()
+end
+
+function GameBoard:removeDeadBlocks()
+    for i = #self.blocks, 1, -1 do
+        if self.blocks[i].dead then
+            table.remove(self.blocks, i)
         end
-    end)
+    end
 end
 
 function GameBoard:setBlock(x, y, block)
@@ -191,18 +234,22 @@ function GameBoard:setBlock(x, y, block)
 end
 
 function GameBoard:addBlock(x, y)
-    local block = Block(randomKey(self.ids), Timer)
+    local block = Block(randomKey(self.ids), Timer, true)
+    if self.blocksSpawned % self.badBlockindex == 0 then
+        block = Block(5, Timer, false)
+    end
     local targetCell = self.board.grid[y][x]
     block.position.x = targetCell.wx
     block.position.y = targetCell.wy - (x * 10) - (y * 10) + 10
     self.board.grid[y][x]:setOccupant(block)
     table.insert(self.blocks, block)
+    self.blocksSpawned = self.blocksSpawned + 1
 end
 
 function GameBoard:draw()
     self.board:draw()
-    
-    --clip block drawing to the board
+
+    --clip blocks drawing to inside the board
     love.graphics.setScissor(
         (self.offsetX + self.cellSize),
         (self.offsetY + self.cellSize),
@@ -214,12 +261,13 @@ function GameBoard:draw()
     end
     love.graphics.setScissor()
 
-    
+
     if self.animating then
         setColor(7)
     else 
         setColor(1)
     end
+
     -- border
     love.graphics.rectangle(
         'line',
@@ -228,7 +276,7 @@ function GameBoard:draw()
         self.maxWidth * self.cellSize,
         self.maxHeight * self.cellSize
     )
-    --self.board:drawOccupantInfo()
+
     -- cursor
     if not self.animating then
         self.board.cursor:draw()
@@ -278,14 +326,9 @@ function GameBoard:drawCurrentSet(ox, oy)
     end
 end
 
-function GameBoard:dropToEmptys(cellList)
-    local minX = self.maxWidth
-    local maxX = 1
-
-    for _, cell in pairs(cellList) do
-        if(cell.x < minX) then minX = cell.x end
-        if(cell.x > maxX) then maxX = cell.x end
-    end
+function GameBoard:dropToEmptys()
+    local minX = 1
+    local maxX = self.maxWidth
 
     for y = self.maxHeight, 2, -1 do
         for x = minX, maxX do
@@ -313,9 +356,15 @@ function GameBoard:clearBoard()
 end
 
 function GameBoard:add()
-    self.adding = true
-    self.path:add(self.board:cellAtCursor());
-    self:checkForPalindrome(self.path.cells)
+    local cell = self.board:cellAtCursor()
+    if(cell:hasOccupant() and cell.occupant.matchable) then
+        self.path:add(cell);
+        self:checkForPalindrome(self.path.cells)
+        self.adding = true
+    else
+        self.adding = false
+        self:clear();
+    end
 end
 
 function GameBoard:update(dt)

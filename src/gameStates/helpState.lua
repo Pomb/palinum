@@ -38,7 +38,7 @@ function HelpState:refresh()
     local index = 1;
     for yy = 1, 2 do
         for xx = 1, 3 do
-            local b = Block(self.ids[index], Timer)
+            local b = Block(self.ids[index], Timer, true)
             self.gameboard:setBlock(xx, yy, b)
             index = index + 1
         end

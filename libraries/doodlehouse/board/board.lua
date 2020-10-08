@@ -100,7 +100,6 @@ function Board:cellAtCoord(x,y)
     if self:inBounds(x,y) then
         return self.grid[y][x]
     else
-        error('eh no in bounds!', x, y)
         return nil
     end
 end
