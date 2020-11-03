@@ -1,5 +1,5 @@
 # Distribution
-build/
+builds/
 
 # Environments
 .env
