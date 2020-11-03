@@ -5,6 +5,7 @@ Moonshine = require 'libraries.moonshine'
 MenuState = require 'src.gameStates.menuState'
 GameState = require 'src.gameStates.gameState'
 HelpState = require 'src.gameStates.helpState'
+Camrea = require 'src.objects.camera'
 Console = require 'src.console'
 
 function love.load()
@@ -26,12 +27,7 @@ function love.load()
     g_offsetX = 0
     g_offsetY = 0
     
-    cameraShake = {
-        x = 0,
-        y = 0,
-        duration = 0,
-        frequency = 0,
-    }
+    camera = Camera()
 
     particles = {}
 
@@ -109,10 +105,6 @@ function setupConsoleCommands()
     end, "load the level number")
 end
 
-function shake(duration, frequency)
-    cameraShake.duration = cameraShake.duration + duration
-    cameraShake.frequency = cameraShake.frequency + frequency
-end
 
 function changeState(targetState)
     menuCol = 7
@@ -134,7 +126,7 @@ function love.draw()
     love.graphics.push()
     love.graphics.setCanvas(canvas)
     love.graphics.clear()
-    love.graphics.translate(cameraShake.x, cameraShake.y)
+    love.graphics.translate(camera:getCamPosX(), camera:getCamPosY())
     love.graphics.setLineWidth(2)
     setColor(1)
     love.graphics.rectangle('line', 4,3,(game_width/scale)-8,(game_height/scale)-6)
@@ -202,24 +194,15 @@ end
 function love.update(dt)
     if effectsOn then Effect.scanlines.phase = math.sin(dt * 100) * 100 end
     debugText['fps'] = love.timer.getFPS()
-
-    if cameraShake.duration > 0 then
-        cameraShake.x = math.random(-1, 1) * cameraShake.frequency
-        cameraShake.y = math.random(-1, 1) * cameraShake.frequency
-        cameraShake.duration = cameraShake.duration - dt
-        cameraShake.frequency = cameraShake.frequency * cameraShake.duration
-    else
-        cameraShake.x = 0
-        cameraShake.y = 0
-    end
-
+    
     for i = #particles, 1, -1 do
         particles[i]:update(dt)
         if particles[i]:isDead() then
-        table.remove(particles, i)
+            table.remove(particles, i)
         end
     end
-
+    
+    camera:update(dt)
     state:update(dt)
     Timer.update(dt)
     console:update(dt)
@@ -255,7 +238,7 @@ function love.keypressed(key, scancode, isrepeat)
         elseif key == '4' then
             g_offsetY = g_offsetY - 1
         elseif key == '0' then
-            shake(math.random(0.1, 1), math.random(0.1, 2))
+            camera:setShake(math.random(0.1, 1), math.random(0.1, 2))
         end
         state:keypressed(key, scancode, isrepeat)
     end

@@ -14,12 +14,13 @@
     - got 6 levels and then it's more of the same
 
 - [ ] palindrom scoring
-- [ ] juicing the difficulty of the palindrome
+    - score should increase based on palindrome complexity
+- [x] juicing the difficulty of the palindrome
     - [ ] more rainbow for more palindrome!
 
 
 ## Scope dragons
 __uh some other mechanics that get introduced as levels progress or something...__
-- [ ] obstacle block
-    - obstacle sits on a tile, requires the obstacle color inside the palindrome to complete
+- [x] obstacle block
+    [ ] - obstacle sits on a tile, requires the obstacle color inside the palindrome to complete
 
