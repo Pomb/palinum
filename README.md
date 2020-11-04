@@ -1,9 +1,13 @@
 # palinum
 palindrome matching game made using the https://love2d.org
 
+![](gifs/palinum-1.gif)
+
 ## Game Rules
-1. use the arrow keys around the board adding to the path until a palindrome is made.
-2. press x to toggle and reset adding to the path
+Move the cursor to connect blocks together
+Form palindromes to make score
+
+press `Tab` to toggle the console, and type `help`
 
 ## How to run
 In the terminal enter the following commands:
